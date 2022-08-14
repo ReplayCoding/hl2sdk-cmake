@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//===== Copyright © 1996-2005, Valve Corporation, All rights reserved. ======//
 //
 // Purpose: 
 //
@@ -24,7 +24,7 @@
 
 #ifdef _WIN32
 #define FORCEINLINE_CVAR FORCEINLINE
-#elif POSIX
+#elif defined _LINUX || defined __APPLE__
 #define FORCEINLINE_CVAR inline
 #else
 #error "implement me"
@@ -379,7 +379,7 @@ private:
 	// Called by CCvar when the value of a var is changing.
 	virtual void				InternalSetValue(const char *value);
 	// For CVARs marked FCVAR_NEVER_AS_STRING
-	virtual void				InternalSetFloatValue( float fNewValue );
+	virtual void				InternalSetFloatValue( float fNewValue, bool bForce = false );
 	virtual void				InternalSetIntValue( int nValue );
 
 	virtual bool				ClampValue( float& value );
@@ -416,6 +416,13 @@ private:
 	float						m_fMinVal;
 	bool						m_bHasMax;
 	float						m_fMaxVal;
+
+	bool						m_bHasCompMin;
+	float						m_fCompMinVal;
+	bool						m_bHasCompMax;
+	float						m_fCompMaxVal;
+	bool						m_bCompetitiveRestrictions;
+
 	
 	// Call this function when ConVar changes
 	FnChangeCallback_t			m_fnChangeCallback;
@@ -579,7 +586,7 @@ void ConVar_PrintDescription( const ConCommandBase *pVar );
 //-----------------------------------------------------------------------------
 // Purpose: Utility class to quickly allow ConCommands to call member methods
 //-----------------------------------------------------------------------------
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning (disable : 4355 )
 #endif
 
@@ -628,7 +635,7 @@ private:
 	FnMemberCommandCompletionCallback_t m_CompletionFunc;
 };
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning ( default : 4355 )
 #endif
 
