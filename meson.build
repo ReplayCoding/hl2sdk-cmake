@@ -28,6 +28,8 @@ sdk_headers = include_directories(
   sdk_dir / 'public/tier0',
   sdk_dir / 'public/tier1',
   sdk_dir,
+  # Don't let warnings propagate out of the SDK
+  is_system: true,
 )
 
 tier1_sources = [
@@ -95,6 +97,12 @@ tier1_cflags = [
   '-Wno-strict-aliasing',
   '-Wno-unused-function',
   '-Wno-unused-result',
+  '-Wno-unused-value',
+  '-Wno-volatile',
+  '-Wno-class-memaccess',
+  '-Wno-stringop-overflow',
+  '-Wno-stringop-truncation',
+  '-Wno-maybe-uninitialized',
 ] + sdk_cflags
 
 tier1_dep = static_library(
