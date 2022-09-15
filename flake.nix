@@ -24,7 +24,7 @@
           buildInputs = with pkgs; [];
           nativeBuildInputs = with pkgs; [
             # For build
-            meson
+            cmake
             ninja
             # Debugging
             lldb

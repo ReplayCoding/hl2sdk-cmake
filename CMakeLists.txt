@@ -1,0 +1,58 @@
+cmake_minimum_required(VERSION 3.10)
+project(source-sdk-2013)
+
+set(
+  SDK_CFLAGS
+
+  -DGNUC
+  -DCOMPILER_GCC
+  -D_LINUX -DLINUX
+  -DPOSIX -D_POSIX
+  -DNO_HOOK_MALLOC -DNO_MALLOC_OVERRIDE
+  -DUSE_SDL -DDX_TO_GL_ABSTRACTION
+  -D_GLIBCXX_USE_CXX11_ABI=0
+  # This is annoying but otherwise there are warnings
+  -Wno-non-virtual-dtor
+  -Wno-unused-parameter
+)
+
+set(
+  SDK_INCLUDES
+
+  "${PROJECT_SOURCE_DIR}/public"
+  "${PROJECT_SOURCE_DIR}/common"
+  "${PROJECT_SOURCE_DIR}"
+)
+
+set(
+  SDK_LIBDIRS
+  "${PROJECT_SOURCE_DIR}/fixed-libs"
+  "${PROJECT_SOURCE_DIR}/lib/public/linux32"
+)
+
+function(get_compiled_lib name type)
+  find_library(LIBRARY NAMES ${name} PATHS ${SDK_LIBDIRS} NO_DEFAULT_PATH)
+  set(
+    INCLUDES
+
+    "${SDK_INCLUDES}"
+    "${PROJECT_SOURCE_DIR}/public/${name}"
+  )
+
+  add_library(${name} ${type} IMPORTED GLOBAL)
+  target_include_directories(${name} SYSTEM INTERFACE ${INCLUDES})
+  set_target_properties(
+    ${name} PROPERTIES
+    IMPORTED_LOCATION "${LIBRARY}"
+  )
+endfunction()
+
+get_compiled_lib(tier0 STATIC)
+
+# We compile tier1 ourselves
+add_subdirectory(tier1)
+
+get_compiled_lib(tier2 STATIC)
+get_compiled_lib(tier3 STATIC)
+get_compiled_lib(bitmap STATIC)
+
