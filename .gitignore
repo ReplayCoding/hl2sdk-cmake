@@ -2,3 +2,6 @@
 *.sdf
 *.vpc.sentinel
 *.VC.db
+
+.direnv
+.cache
