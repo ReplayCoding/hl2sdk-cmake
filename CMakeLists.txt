@@ -26,28 +26,36 @@ set(
 
 set(
   SDK_LIBDIRS
-  "${PROJECT_SOURCE_DIR}/fixed-libs"
-  "${PROJECT_SOURCE_DIR}/lib/public/linux32"
 )
 
 function(get_compiled_lib name type)
-  find_library(LIBRARY NAMES ${name} PATHS ${SDK_LIBDIRS} NO_DEFAULT_PATH)
+  set(LIB_SUFFIX "")
+  if(type STREQUAL STATIC)
+    set(LIB_SUFFIX ".a")
+  endif()
+  find_library(
+    LIBRARY_${name}
+    NAMES ${name}${LIB_SUFFIX}
+    PATHS
+      ${PROJECT_SOURCE_DIR}/fixed-libs
+      ${PROJECT_SOURCE_DIR}/lib/public/linux32
+    NO_DEFAULT_PATH REQUIRED)
   set(
-    INCLUDES
+    INCLUDES_${name}
 
     "${SDK_INCLUDES}"
     "${PROJECT_SOURCE_DIR}/public/${name}"
   )
 
   add_library(${name} ${type} IMPORTED GLOBAL)
-  target_include_directories(${name} SYSTEM INTERFACE ${INCLUDES})
+  target_include_directories(${name} SYSTEM INTERFACE ${INCLUDES_${name}})
   set_target_properties(
     ${name} PROPERTIES
-    IMPORTED_LOCATION "${LIBRARY}"
+    IMPORTED_LOCATION "${LIBRARY_${name}}"
   )
 endfunction()
 
-get_compiled_lib(tier0 STATIC)
+get_compiled_lib(tier0 SHARED)
 
 # We compile tier1 ourselves
 add_subdirectory(tier1)
@@ -55,4 +63,3 @@ add_subdirectory(tier1)
 get_compiled_lib(tier2 STATIC)
 get_compiled_lib(tier3 STATIC)
 get_compiled_lib(bitmap STATIC)
-
