@@ -77,11 +77,11 @@ target_compile_options(
   -Wno-ignored-qualifiers
 )
 
+target_link_libraries(tier1 tier0)
 target_include_directories(
   tier1 SYSTEM PUBLIC
   "${SDK_INCLUDES}"
   "${PROJECT_SOURCE_DIR}/public/tier1"
 )
 
-# Oof, this links tier0 to tier1
-target_link_libraries(tier1 tier0)
+add_library(sdk::tier1 ALIAS tier1)

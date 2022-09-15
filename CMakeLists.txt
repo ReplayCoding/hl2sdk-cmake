@@ -53,6 +53,7 @@ function(get_compiled_lib name type)
     ${name} PROPERTIES
     IMPORTED_LOCATION "${LIBRARY_${name}}"
   )
+  add_library(sdk::${name} ALIAS ${name})
 endfunction()
 
 get_compiled_lib(tier0 SHARED)
