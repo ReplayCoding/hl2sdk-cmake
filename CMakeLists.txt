@@ -10,6 +10,7 @@ set(
   -DPOSIX -D_POSIX
   -DNO_HOOK_MALLOC -DNO_MALLOC_OVERRIDE
   -DUSE_SDL -DDX_TO_GL_ABSTRACTION
+  -DRAD_TELEMETRY_DISABLED
   -D_GLIBCXX_USE_CXX11_ABI=0
   # This is annoying but otherwise there are warnings
   -Wno-non-virtual-dtor
@@ -58,8 +59,8 @@ endfunction()
 
 get_compiled_lib(tier0 SHARED)
 
-# We compile tier1 ourselves
 add_subdirectory(tier1)
+add_subdirectory(mathlib)
 
 get_compiled_lib(tier2 STATIC)
 get_compiled_lib(tier3 STATIC)
