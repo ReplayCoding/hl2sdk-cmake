@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.10)
 project(source-sdk-2013)
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+ add_compile_options (-fdiagnostics-color=always)
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+ add_compile_options (-fcolor-diagnostics)
+endif ()
+
 set(
   SDK_CFLAGS
 
@@ -23,10 +29,6 @@ set(
   "${PROJECT_SOURCE_DIR}/public"
   "${PROJECT_SOURCE_DIR}/common"
   "${PROJECT_SOURCE_DIR}"
-)
-
-set(
-  SDK_LIBDIRS
 )
 
 function(get_compiled_lib name type)
@@ -61,6 +63,7 @@ get_compiled_lib(tier0 SHARED)
 
 add_subdirectory(tier1)
 add_subdirectory(mathlib)
+add_subdirectory(fgdlib)
 
 get_compiled_lib(tier2 STATIC)
 get_compiled_lib(tier3 STATIC)

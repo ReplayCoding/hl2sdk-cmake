@@ -21,10 +21,11 @@
 #pragma warning(pop)
 #endif
 
-#include "TokenReader.h"
-#include "GDClass.h"
-#include "InputOutput.h"
-#include "UtlString.h"
+#include "tokenreader.h"
+#include "gdclass.h"
+#include "ieditortexture.h"
+#include "inputoutput.h"
+#include "utlstring.h"
 #include "utlvector.h"
 
 

@@ -2,12 +2,15 @@
 //
 //=============================================================================
 
+#ifndef POSIX
 #include <windows.h>
-#include <tier0/dbg.h>
 #include <io.h>
-#include <WorldSize.h>
-#include "fgdlib/GameData.h"
-#include "fgdlib/HelperInfo.h"
+#include <tier0/dbg.h>
+#endif
+
+#include <worldsize.h>
+#include "fgdlib/gamedata.h"
+#include "fgdlib/helperinfo.h"
 #include "KeyValues.h"
 #include "filesystem_tools.h"
 #include "tier1/strtools.h"
@@ -282,8 +285,10 @@ BOOL GameData::Load(const char *pszFilename)
 {
 	TokenReader tr;
 
+  #ifndef POSIX
 	if(GetFileAttributes(pszFilename) == 0xffffffff)
 		return FALSE;
+  #endif
 
 	if(!tr.Open(pszFilename))
 		return FALSE;
@@ -482,8 +487,8 @@ bool GameData::ParseMapSize(TokenReader &tr)
 
 	if (nMin != nMax)
 	{
-		m_nMinMapCoord = min(nMin, nMax);
-		m_nMaxMapCoord = max(nMin, nMax);
+		m_nMinMapCoord = V_min(nMin, nMax);
+		m_nMaxMapCoord = V_max(nMin, nMax);
 	}
 
 	if (!GDSkipToken(tr, OPERATOR, ")"))
