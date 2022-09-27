@@ -25,11 +25,14 @@ add_library(
   almostequal.cpp
 )
 
-target_compile_options(mathlib PUBLIC "${SDK_CFLAGS}")
+target_compile_options(
+  mathlib PUBLIC
+  "${SDK_CFLAGS}"
+  -msse2
+)
 target_compile_options(
   mathlib PRIVATE
   -Wno-narrowing # Can't do much about potentially broken code
-  -msse
 )
 
 target_link_libraries(mathlib tier0)
