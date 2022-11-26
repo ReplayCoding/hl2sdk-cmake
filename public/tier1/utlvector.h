@@ -79,9 +79,7 @@ public:
 	const T* Base() const					{ return m_Memory.Base(); }
 
 	// Returns the number of elements in the vector
-	// SIZE IS DEPRECATED!
 	int Count() const;
-	int Size() const;	// don't use me!
 
 	/// are there no elements? For compatibility with lists.
 	inline bool IsEmpty( void ) const
@@ -107,8 +105,10 @@ public:
 
 	// Adds multiple elements, uses default constructor
 	int AddMultipleToHead( int num );
-	int AddMultipleToTail( int num, const T *pToCopy=NULL );	   
-	int InsertMultipleBefore( int elem, int num, const T *pToCopy=NULL );	// If pToCopy is set, then it's an array of length 'num' and
+	int AddMultipleToTail( int num );	   
+	int AddMultipleToTail( int num, const T *pToCopy );	   
+	int InsertMultipleBefore( int elem, int num );
+	int InsertMultipleBefore( int elem, int num, const T *pToCopy );
 	int InsertMultipleAfter( int elem, int num );
 
 	// Calls RemoveAll() then AddMultipleToTail.
@@ -127,6 +127,7 @@ public:
 
 	// Finds an element (element needs operator== defined)
 	int Find( const T& src ) const;
+	void FillWithValue( const T& src );
 
 	bool HasElement( const T& src ) const;
 
@@ -219,8 +220,9 @@ private:
 };
 
 //-----------------------------------------------------------------------------
-// The CUtlVectorFixed class:
-// A array class with a fixed allocation scheme
+// The CUtlVectorMT class:
+// A array class with some sort of mutex protection. Not sure which operations are protected from
+// which others.
 //-----------------------------------------------------------------------------
 
 template< class BASE_UTLVECTOR, class MUTEX_TYPE = CThreadFastMutex >
@@ -501,7 +503,7 @@ public:
 	struct Data_t
 	{
 		int m_Size;
-		T m_Elements[0];
+		T m_Elements[];
 	};
 
 	Data_t *m_pData;
@@ -814,7 +816,9 @@ template< typename T, class A >
 void CUtlVector<T, A>::EnsureCount( int num )
 {
 	if (Count() < num)
+	{
 		AddMultipleToTail( num - Count() );
+	}
 }
 
 
@@ -933,10 +937,16 @@ inline int CUtlVector<T, A>::AddMultipleToHead( int num )
 }
 
 template< typename T, class A >
+inline int CUtlVector<T, A>::AddMultipleToTail( int num )
+{
+	return InsertMultipleBefore( m_Size, num );
+}
+
+template< typename T, class A >
 inline int CUtlVector<T, A>::AddMultipleToTail( int num, const T *pToCopy )
 {
 	// Can't insert something that's in the list... reallocation may hose us
-	Assert( (Base() == NULL) || !pToCopy || (pToCopy + num < Base()) || (pToCopy >= (Base() + Count()) ) ); 
+	Assert( (Base() == NULL) || !pToCopy || (pToCopy + num <= Base()) || (pToCopy >= (Base() + Count()) ) ); 
 
 	return InsertMultipleBefore( m_Size, num, pToCopy );
 }
@@ -987,7 +997,6 @@ void CUtlVector<T, A>::Swap( CUtlVector< T, A > &vec )
 {
 	m_Memory.Swap( vec.m_Memory );
 	V_swap( m_Size, vec.m_Size );
-
 #ifndef _X360
 	V_swap( m_pElements, vec.m_pElements );
 #endif
@@ -1001,15 +1010,37 @@ int CUtlVector<T, A>::AddVectorToTail( CUtlVector const &src )
 	int base = Count();
 	
 	// Make space.
-	AddMultipleToTail( src.Count() );
+	int nSrcCount = src.Count();
+	EnsureCapacity( base + nSrcCount );
 
 	// Copy the elements.	
-	for ( int i=0; i < src.Count(); i++ )
+	m_Size += nSrcCount;
+	for ( int i=0; i < nSrcCount; i++ )
 	{
-		(*this)[base + i] = src[i];
+		CopyConstruct( &Element(base+i), src[i] );
+	}
+	return base;
+}
+
+template< typename T, class A >
+inline int CUtlVector<T, A>::InsertMultipleBefore( int elem, int num )
+{
+	if( num == 0 )
+		return elem;
+
+	// Can insert at the end
+	Assert( (elem == Count()) || IsValidIndex(elem) );
+
+	GrowVector(num);
+	ShiftElementsRight( elem, num );
+
+	// Invoke default constructors
+	for (int i = 0; i < num; ++i )
+	{
+		Construct( &Element( elem+i ) );
 	}
 
-	return base;
+	return elem;
 }
 
 template< typename T, class A >
@@ -1033,7 +1064,7 @@ inline int CUtlVector<T, A>::InsertMultipleBefore( int elem, int num, const T *p
 	{
 		for ( int i=0; i < num; i++ )
 		{
-			Element( elem+i ) = pToInsert[i];
+			CopyConstruct( &Element( elem+i ), pToInsert[i] );
 		}
 	}
 
@@ -1053,6 +1084,15 @@ int CUtlVector<T, A>::Find( const T& src ) const
 			return i;
 	}
 	return -1;
+}
+
+template< typename T, class A >
+void CUtlVector<T, A>::FillWithValue( const T& src )
+{
+	for ( int i = 0; i < Count(); i++ )
+	{
+		Element(i) = src;
+	}
 }
 
 template< typename T, class A >
@@ -1239,19 +1279,6 @@ public:
 		return strcmp( *sz1, *sz2 );
 	}
 
-	inline void PurgeAndDeleteElements()
-	{
-		for( int i=0; i < m_Size; i++ )
-		{
-			delete [] Element(i);
-		}
-		Purge();
-	}
-
-	~CUtlStringList( void )
-	{
-		this->PurgeAndDeleteElements();
-	}
 };
 
 

@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//===== Copyright (c) 1996-2005, Valve Corporation, All rights reserved. ======//
 //
 // Purpose: 
 //
@@ -94,6 +94,8 @@ public:
 	void SetExternalBuffer( const T* pMemory, int numElements );
 	// Takes ownership of the passed memory, including freeing it when this buffer is destroyed.
 	void AssumeMemory( T *pMemory, int nSize );
+	T* Detach();
+	void *DetachMemory();
 
 	// Fast swap
 	void Swap( CUtlMemory< T, I > &mem );
@@ -137,7 +139,7 @@ protected:
 			const int MAX_GROW = 128;
 			if ( m_nGrowSize * sizeof(T) > MAX_GROW )
 			{
-				m_nGrowSize = max( 1, MAX_GROW / sizeof(T) );
+				m_nGrowSize = V_max( 1, MAX_GROW / sizeof(T) );
 			}
 		}
 #endif
@@ -212,8 +214,7 @@ public:
 	CUtlMemoryFixed( T* pMemory, int numElements )			{ Assert( 0 ); 										}
 
 	// Can we use this index?
-	// Use unsigned math to improve performance
-	bool IsIdxValid( int i ) const							{ return (size_t)i < SIZE; }
+	bool IsIdxValid( int i ) const							{ return (i >= 0) && (i < SIZE); }
 
 	// Specify the invalid ('null') index that we'll only return on failure
 	static const int INVALID_INDEX = -1; // For use with COMPILE_TIME_ASSERT
@@ -543,6 +544,24 @@ void CUtlMemory<T,I>::AssumeMemory( T* pMemory, int numElements )
 	m_nAllocationCount = numElements;
 }
 
+template< class T, class I >
+void *CUtlMemory<T,I>::DetachMemory()
+{
+	if ( IsExternallyAllocated() )
+		return NULL;
+
+	void *pMemory = m_pMemory;
+	m_pMemory = 0;
+	m_nAllocationCount = 0;
+	return pMemory;
+}
+
+template< class T, class I >
+inline T* CUtlMemory<T,I>::Detach()
+{
+	return (T*)DetachMemory();
+}
+
 
 //-----------------------------------------------------------------------------
 // element access
@@ -651,10 +670,10 @@ inline int CUtlMemory<T,I>::Count() const
 template< class T, class I >
 inline bool CUtlMemory<T,I>::IsIdxValid( I i ) const
 {
-	// If we always cast 'i' and 'm_nAllocationCount' to unsigned then we can
-	// do our range checking with a single comparison instead of two. This gives
-	// a modest speedup in debug builds.
-	return (uint32)i < (uint32)m_nAllocationCount;
+	// GCC warns if I is an unsigned type and we do a ">= 0" against it (since the comparison is always 0).
+	// We get the warning even if we cast inside the expression. It only goes away if we assign to another variable.
+	long x = i;
+	return ( x >= 0 ) && ( x < m_nAllocationCount );
 }
 
 //-----------------------------------------------------------------------------
