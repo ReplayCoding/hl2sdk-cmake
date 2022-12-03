@@ -80,6 +80,7 @@ public:
 
 	// Returns the number of elements in the vector
 	int Count() const;
+  int Size() const;
 
 	/// are there no elements? For compatibility with lists.
 	inline bool IsEmpty( void ) const
@@ -684,7 +685,8 @@ inline const T& CUtlVector<T, A>::Tail() const
 template< typename T, class A >
 inline int CUtlVector<T, A>::Size() const
 {
-	return m_Size;
+  // Deprecated, but same as Count
+	return Count();
 }
 
 template< typename T, class A >
