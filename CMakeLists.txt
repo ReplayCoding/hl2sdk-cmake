@@ -28,6 +28,9 @@ set(
 
   "${PROJECT_SOURCE_DIR}/public"
   "${PROJECT_SOURCE_DIR}/common"
+  "${PROJECT_SOURCE_DIR}/game/shared"
+  "${PROJECT_SOURCE_DIR}/game/client"
+  "${PROJECT_SOURCE_DIR}/game/server"
   "${PROJECT_SOURCE_DIR}"
 )
 
