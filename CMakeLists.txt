@@ -17,11 +17,16 @@ set(
   -DNO_HOOK_MALLOC -DNO_MALLOC_OVERRIDE
   -DUSE_SDL -DDX_TO_GL_ABSTRACTION
   -DRAD_TELEMETRY_DISABLED
-  -D_GLIBCXX_USE_CXX11_ABI=0
   # This is annoying but otherwise there are warnings
   -Wno-non-virtual-dtor
   -Wno-unused-parameter
 )
+
+option(SDK_USE_CXX11_ABI "Allow the new C++11 string abi, may break things" OFF)
+
+if(NOT SDK_USE_CXX11_ABI)
+  list(APPEND SDK_CFLAGS -D_GLIBCXX_USE_CXX11_ABI=0)
+endif()
 
 set(
   SDK_INCLUDES
