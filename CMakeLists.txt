@@ -68,6 +68,7 @@ function(get_compiled_lib name type)
 endfunction()
 
 get_compiled_lib(tier0 SHARED)
+get_compiled_lib(vstdlib SHARED)
 
 add_subdirectory(tier1)
 add_subdirectory(mathlib)
